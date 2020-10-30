@@ -1,3 +1,6 @@
 /.idea/
 /venv/
 __pycache__/
+.*.log
+debug.log
+
