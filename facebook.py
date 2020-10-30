@@ -3,6 +3,8 @@ import time
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 
+import util
+
 
 class Facebook:
     def __init__(self):
@@ -78,20 +80,23 @@ class Facebook:
         self.driver.get(self.loginURL + "/" + self.needToCrawl[0])
         self.driver.implicitly_wait(5)
 
+        util.scroll(1, self.driver, 10)
+        time.sleep(5)
+
         posts = self.driver.find_elements_by_xpath(
             ".//div[@class='rq0escxv l9j0dhe7 du4w35lb d2edcug0 hpfvmrgz gile2uim buofh1pr g5gj957u aov4n071 oi9244e8 bi6gxh9e h676nmdw aghb5jc5']/div")
+        print("共{}条post".format(len(posts)))
 
-        print('--------------')
-        print(len(posts))
-        print('--------------')
-
-        for (index, post) in posts:
+        for (postIndex, post) in posts:
+            print("第{}条post：".format(postIndex))
+            print('-------postStart-------')
+            print(post)
+            print('-------postEnd-------')
             items = post.find_elements_by_xpath(".//blockquote")
             for item in items:
-                print('------item--------')
+                print('------itemStart--------')
                 print(item.text)
                 print('------itemEnd--------')
-
 
     def run(self):
         self.login_auto()
