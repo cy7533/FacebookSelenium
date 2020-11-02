@@ -3,4 +3,4 @@
 __pycache__/
 .*.log
 debug.log
-
+/data/
