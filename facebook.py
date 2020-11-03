@@ -2,7 +2,7 @@ import sys
 import time
 
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, StaleElementReferenceException
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -199,7 +199,7 @@ class Facebook:
                 indexValid += 1
             try:
                 util.scrollToEle(self.driver, posts[indexValid], 1)
-            except IndexError:
+            except IndexError or StaleElementReferenceException:
                 util.scrollToPosition(self.driver, 1)
 
             print('第{}次滚动，滚动到第{}个post'.format(scrollTime, indexValid))
