@@ -1,3 +1,4 @@
+import sys
 import time
 
 from selenium import webdriver
@@ -16,13 +17,13 @@ class Facebook:
     爬取Facebook类
     """
 
-    def __init__(self, startID=0, endId=10, scrollTimes=50):
+    def __init__(self, username, password, startID=0, endId=10, scrollTimes=50, ):
         self.driverPath = "./webdriver/win32/chromedriver.exe"
         self.driver = self.start()
 
         self.loginURL = "https://www.facebook.com"
-        self.username = "csy5677@gmail.com"
-        self.password = "c3995677"
+        self.username = username
+        self.password = password
 
         # 要爬取的facebookid列表
         self.facebookids = []
@@ -196,7 +197,10 @@ class Facebook:
             # 如果没有更新
             if not indexValidUpdate:
                 indexValid += 1
-            util.scroll(self.driver, posts[indexValid], 1)
+            try:
+                util.scrollToEle(self.driver, posts[indexValid], 1)
+            except IndexError:
+                util.scrollToPosition(self.driver, 1)
 
             print('第{}次滚动，滚动到第{}个post'.format(scrollTime, indexValid))
             time.sleep(5)
@@ -239,4 +243,4 @@ class Facebook:
 
 
 if __name__ == '__main__':
-    Facebook().run()
+    Facebook(sys.argv[1], sys.argv[2]).run()
