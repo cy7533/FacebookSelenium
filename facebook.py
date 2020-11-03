@@ -1,3 +1,4 @@
+import argparse
 import sys
 import time
 
@@ -17,7 +18,7 @@ class Facebook:
     爬取Facebook类
     """
 
-    def __init__(self, username, password, startID=0, endID=10, scrollTimes=50, ):
+    def __init__(self, username, password, startID=0, endID=10, scrollTimes=50):
         self.driverPath = "./webdriver/win32/chromedriver.exe"
         self.driver = self.start()
 
@@ -198,8 +199,7 @@ class Facebook:
             if not indexValidUpdate:
                 indexValid += 1
             try:
-                if not util.scrollToEle(self.driver, posts[indexValid], 1):
-                    break
+                util.scrollToEle(self.driver, posts[indexValid])
             except IndexError or StaleElementReferenceException:
                 if not util.scrollToPosition(self.driver, 1):
                     break
@@ -239,10 +239,19 @@ class Facebook:
             postsResultDF = pd.DataFrame(result)
             postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i]), index=False, header=True)
 
-        input("回编辑器点击回车关闭浏览器：")
+        # input("回编辑器点击回车关闭浏览器：")
+        print('爬取用户id序号从{}到{}，完成'.format(self.startID, self.endID))
         self.driver.close()
         self.driver.quit()
 
 
 if __name__ == '__main__':
-    Facebook(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]).run()
+    parser = argparse.ArgumentParser(description="facebook selenium cookbook")
+    parser.add_argument('username')
+    parser.add_argument('password')
+    parser.add_argument('--startID', type=int, default=0)
+    parser.add_argument('--endID', type=int, default=10)
+    parser.add_argument('--scrollTimes', type=int, default=50)
+    args = parser.parse_args()
+
+    Facebook(args.username, args.password, args.startID, args.endID, args.scrollTimes).run()
