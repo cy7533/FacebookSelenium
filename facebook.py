@@ -65,7 +65,7 @@ class Facebook:
         self.driver.set_window_size(1024, 768)
         input("请手动登录，确认登录后不要关闭浏览器，回编辑器点击回车：")
         # 最小化窗口
-        self.driver.minimize_window()
+        # self.driver.minimize_window()
         timeEnd = time.time()
         print('您的本次登录共用时{}秒。'.format(int(timeEnd - timeStart)))
 
@@ -80,6 +80,13 @@ class Facebook:
         # 强制声明浏览器长宽为1024*768以适配所有屏幕
         self.driver.set_window_position(0, 0)
         self.driver.set_window_size(1024, 768)
+
+        try:
+            WebDriverWait(self.driver, 2, 0.05).until(
+                EC.presence_of_element_located((By.NAME, "email"))
+            )
+        except TimeoutException:
+            print('错误！在登录页面中未找到登录元素')
 
         self.driver.find_element_by_name("email").send_keys(self.username)
         self.driver.find_element_by_name("pass").send_keys(self.password)
@@ -114,65 +121,85 @@ class Facebook:
         postsResult = {}
         # 目前可以提取的到的post的最后一个index
         indexValid = 0
+        # 每次滚动确定一次post中是否有内容即可
+        checkItems = True
 
         # 最多的滚动次数range来指定
         # 经过实验大概每一次滚动可以提取5个左右的post，由于无法删去之前的div，之后的处理会越来越慢
         for scrollTime in range(self.scrollTimes):
+            checkItems = True
             print('第{}次滚动...'.format(scrollTime))
 
+            # 等待post列表加载完毕
+            # posts列表的XPath路径
+            postsXPath = ".//div[@class='rq0escxv l9j0dhe7 du4w35lb d2edcug0 hpfvmrgz gile2uim buofh1pr g5gj957u aov4n071 oi9244e8 bi6gxh9e h676nmdw aghb5jc5']/div"
             try:
-                WebDriverWait(self.driver, 0.5, 0.05).until(
-                    EC.presence_of_element_located((By.XPATH,
-                                                    ".//div[@class='rq0escxv l9j0dhe7 du4w35lb d2edcug0 hpfvmrgz gile2uim buofh1pr g5gj957u aov4n071 oi9244e8 bi6gxh9e h676nmdw aghb5jc5']/div"))
+                WebDriverWait(self.driver, 2, 0.05).until(
+                    EC.presence_of_element_located((By.XPATH, postsXPath))
                 )
-                posts = self.driver.find_elements_by_xpath(
-                    ".//div[@class='rq0escxv l9j0dhe7 du4w35lb d2edcug0 hpfvmrgz gile2uim buofh1pr g5gj957u aov4n071 oi9244e8 bi6gxh9e h676nmdw aghb5jc5']/div")
             except TimeoutException:
                 print('错误！在网页中未找到{}的post列表'.format(facebookid))
                 return postsResult
+            # 获取当前post列表长度
+            posts = self.driver.find_elements_by_xpath(postsXPath)
+            postsLen = len(posts)
+
+            print("页面中的post列表共{}个post".format(len(posts)))
 
             indexValidUpdate = False
-            for (indexPost, post) in enumerate(posts):
-                # print('-------postStart:{}-------'.format(indexPost))
-                # print(post)
-                # print('-------postEnd:{}-------'.format(indexPost))
-
-                itemsResult = []
-
+            for indexPost in range(indexValid, postsLen):
+                # 等待第i个post的整体加载完毕
+                postIndexXPath = postsXPath + "[position()={}]".format(indexPost + 1)
                 try:
-                    WebDriverWait(self.driver, 0.5, 0.05).until(
-                        EC.presence_of_element_located((By.XPATH,
-                                                        ".//*[self::blockquote or self::div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']]"))
+                    WebDriverWait(self.driver, 2, 0.05).until(
+                        EC.presence_of_element_located((By.XPATH, postIndexXPath))
                     )
-                    # blockquote 表示翻译后的
-                    # div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a'] 表示直接的文字
-                    items = post.find_elements_by_xpath(".//*[self::blockquote or self::div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']]")
                 except TimeoutException:
-                    print('错误！在{}的post列表中未找到文字item'.format(facebookid))
+                    print('错误！在网页中未找到{}的第{}个post'.format(facebookid, indexPost))
                     return postsResult
 
+                if checkItems:
+                    # 等待第i个post的内容加载完毕
+                    # 根据用户昵称是否显示
+                    itemsPostIndexXPath = postIndexXPath + "//div[@class='nc684nl6']"
+                    try:
+                        WebDriverWait(self.driver, 100, 0.05).until(
+                            EC.presence_of_element_located((By.XPATH, itemsPostIndexXPath))
+                        )
+                        checkItems = False
+                    except TimeoutException:
+                        print('错误！在网页中未找到{}的第{}个post中内容加载延迟'.format(facebookid, indexPost, facebookid))
+                        return postsResult
+
+                post = self.driver.find_element_by_xpath(postIndexXPath)
+                # blockquote 表示翻译后的
+                # div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a'] 表示直接的文字
+                items = post.find_elements_by_xpath(
+                    ".//*[self::blockquote or self::div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']]")
+
+                itemsResult = []
                 for (indexItem, item) in enumerate(items):
-                    # print('------itemStart:{}--------'.format(indexItem))
-                    # print(item.text)
-                    # print('------itemEnd:{}--------'.format(indexItem))
                     if item.text != "":
                         itemText = item.text.replace('\n', '').replace(' · See original  · Rate this translation',
                                                                        '').strip()
                         itemsResult.append(itemText)
+                print("post{}:{}-------".format(indexPost, itemsResult))
+
                 # 如果有文本内容且存储结果中该post序号内还没有东西
                 if itemsResult != [] and indexPost not in postsResult:
                     postsResult[indexPost] = itemsResult
                     indexValid = indexPost
                     indexValidUpdate = True
-                    print('第{}个post，内容为：{}'.format(indexPost, postsResult[indexPost]))
+                    print('保存第{}个post，内容为：{}'.format(indexPost, postsResult[indexPost]))
+
             # 滚动
             # 如果没有更新
             if not indexValidUpdate:
                 indexValid += 1
             util.scroll(self.driver, posts[indexValid], 1)
 
-            print('第{}次滚动，滚动到第{}个post'.format(scrollTime, len(posts) - 1))
-            time.sleep(3)
+            print('第{}次滚动，滚动到第{}个post'.format(scrollTime, indexValid))
+            time.sleep(5)
 
         timeEnd = time.time()
         print('爬取用户{}的数据共用时{}秒，爬取了{}条post。'
@@ -190,12 +217,10 @@ class Facebook:
         # 从excel中读取id列表
         self.facebookids = self.read_facebookids()
 
-        self.driver.implicitly_wait(2)
-
         # 自动登录Facebook
+        self.driver.implicitly_wait(5)
         self.login_auto()
-
-        self.driver.implicitly_wait(0.5)
+        self.driver.implicitly_wait(1)
 
         # 开始爬取
         for i in range(self.startID, self.endID):
