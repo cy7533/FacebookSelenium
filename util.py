@@ -20,16 +20,16 @@ def scrollToEle(driver, ele, totalScrolls):
             oldHeight = driver.execute_script("return document.body.scrollHeight;")
             driver.execute_script("arguments[0].scrollIntoView();", ele)
             # 等待直到网页总高度发生变化，如果没有发生变化则再等待10s
-            WebDriverWait(driver, 0.5, 0.05).until(
+            WebDriverWait(driver, 50, 0.05).until(
                 lambda driver: check_height(driver, oldHeight)
             )
             currentScrolls += 1
         except TimeoutException:
             # 如果高度没有发生变化，最后则滚到最底
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            break
+            return False
 
-    return
+    return True
 
 
 def scrollToPosition(driver, totalScrolls):
@@ -48,19 +48,19 @@ def scrollToPosition(driver, totalScrolls):
         try:
             # 网页总高度
             oldHeight = driver.execute_script("return document.body.scrollHeight;")
-            # # 每次滚动到网页的7/10处（测试不能直接滚到底）
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight/10*7);")
+            # # 每次滚动到网页的8/10处（测试不能直接滚到底）
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight/10*8);")
             # 等待直到网页总高度发生变化，如果没有发生变化则再等待10s
-            WebDriverWait(driver, 0.5, 0.05).until(
+            WebDriverWait(driver, 50, 0.05).until(
                 lambda driver: check_height(driver, oldHeight)
             )
             currentScrolls += 1
         except TimeoutException:
             # 如果高度没有发生变化，最后则滚到最底
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            break
+            return False
 
-    return
+    return True
 
 
 def check_height(driver, oldHeight):

@@ -198,9 +198,11 @@ class Facebook:
             if not indexValidUpdate:
                 indexValid += 1
             try:
-                util.scrollToEle(self.driver, posts[indexValid], 1)
+                if not util.scrollToEle(self.driver, posts[indexValid], 1):
+                    break
             except IndexError or StaleElementReferenceException:
-                util.scrollToPosition(self.driver, 1)
+                if not util.scrollToPosition(self.driver, 1):
+                    break
 
             print('第{}次滚动，滚动到第{}个post'.format(scrollTime, indexValid))
             time.sleep(5)
