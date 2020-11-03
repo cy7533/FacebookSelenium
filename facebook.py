@@ -16,7 +16,7 @@ class Facebook:
     爬取Facebook类
     """
 
-    def __init__(self):
+    def __init__(self, startID=0, endId=10, scrollTimes=50):
         self.driverPath = "./webdriver/win32/chromedriver.exe"
         self.driver = self.start()
 
@@ -26,6 +26,11 @@ class Facebook:
 
         # 要爬取的facebookid列表
         self.facebookids = []
+        # 开始和结束爬取的id号
+        self.startID = startID
+        self.endID = endId
+        # 爬取的滚动次数
+        self.scrollTimes = scrollTimes
 
     @staticmethod
     def read_facebookids():
@@ -112,7 +117,7 @@ class Facebook:
 
         # 最多的滚动次数range来指定
         # 经过实验大概每一次滚动可以提取5个左右的post，由于无法删去之前的div，之后的处理会越来越慢
-        for scrollTime in range(50):
+        for scrollTime in range(self.scrollTimes):
             print('第{}次滚动...'.format(scrollTime))
 
             try:
@@ -193,7 +198,7 @@ class Facebook:
         self.driver.implicitly_wait(0.5)
 
         # 开始爬取
-        for i in range(0, 10):
+        for i in range(self.startID, self.endID):
             postsResult = self.crawl(self.facebookids[i])
             result = []
             for key, value in postsResult.items():
