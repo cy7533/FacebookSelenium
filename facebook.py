@@ -17,7 +17,7 @@ class Facebook:
     爬取Facebook类
     """
 
-    def __init__(self, username, password, startID=0, endId=10, scrollTimes=50, ):
+    def __init__(self, username, password, startID=0, endID=10, scrollTimes=50, ):
         self.driverPath = "./webdriver/win32/chromedriver.exe"
         self.driver = self.start()
 
@@ -28,8 +28,8 @@ class Facebook:
         # 要爬取的facebookid列表
         self.facebookids = []
         # 开始和结束爬取的id号
-        self.startID = startID
-        self.endID = endId
+        self.startID = int(startID)
+        self.endID = int(endID)
         # 爬取的滚动次数
         self.scrollTimes = scrollTimes
 
@@ -245,4 +245,4 @@ class Facebook:
 
 
 if __name__ == '__main__':
-    Facebook(sys.argv[1], sys.argv[2]).run()
+    Facebook(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]).run()
