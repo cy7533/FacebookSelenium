@@ -40,7 +40,7 @@ items = post.find_elements_by_xpath(".//blockquote")
 按id作为文件名保存
 
 ## 时间提取
-还未完成，初步发现Facebook是对style进行改变来加密，通过xpath判断没有style的应该就是当前显示的时间。
+可以爬取Facebook显示的时间，【**需要改进，需要爬取鼠标悬浮在时间上的具体时间。**】
 
 # 运行方法
 1. 在当前创建虚拟环境venv

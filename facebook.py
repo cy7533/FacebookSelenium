@@ -123,13 +123,12 @@ class Facebook:
         postsResult = {}
         # 目前可以提取的到的post的最后一个index
         indexValid = 0
-        # 每次滚动确定一次post中是否有内容即可
-        checkItems = True
 
         # 最多的滚动次数range来指定
         # 经过实验大概每一次滚动可以提取5个左右的post，由于无法删去之前的div，之后的处理会越来越慢
         for scrollTime in range(self.scrollTimes):
-            checkItems = True
+            # 每次滚动确定一次post中是否有内容即可
+            checkContent = True
             print('第{}次滚动...'.format(scrollTime))
 
             # 等待post列表加载完毕
@@ -142,14 +141,17 @@ class Facebook:
             except TimeoutException:
                 print('错误！在网页中未找到{}的post列表'.format(facebookid))
                 return postsResult
-            # 获取当前post列表长度
-            posts = self.driver.find_elements_by_xpath(postsXPath)
-            postsLen = len(posts)
 
-            print("页面中的post列表共{}个post".format(len(posts)))
+            # 获取当前post列表长度
+            postEles = self.driver.find_elements_by_xpath(postsXPath)
+            postElesLen = len(postEles)
+
+            print("页面中的post列表共{}个post".format(len(postEles)))
 
             indexValidUpdate = False
-            for indexPost in range(indexValid, postsLen):
+            for indexPost in range(indexValid, postElesLen):
+                postData = {}
+                """等待加载完成"""
                 # 等待第i个post的整体加载完毕
                 postIndexXPath = postsXPath + "[position()={}]".format(indexPost + 1)
                 try:
@@ -159,8 +161,7 @@ class Facebook:
                 except TimeoutException:
                     print('错误！在网页中未找到{}的第{}个post'.format(facebookid, indexPost))
                     return postsResult
-
-                if checkItems:
+                if checkContent:
                     # 等待第i个post的内容加载完毕
                     # 根据用户昵称是否显示
                     itemsPostIndexXPath = postIndexXPath + "//div[@class='nc684nl6']"
@@ -168,28 +169,41 @@ class Facebook:
                         WebDriverWait(self.driver, 100, 0.05).until(
                             EC.presence_of_element_located((By.XPATH, itemsPostIndexXPath))
                         )
-                        checkItems = False
+                        checkContent = False
                     except TimeoutException:
                         print('错误！在网页中未找到{}的第{}个post中内容加载延迟'.format(facebookid, indexPost, facebookid))
                         return postsResult
 
-                post = self.driver.find_element_by_xpath(postIndexXPath)
+                postEle = self.driver.find_element_by_xpath(postIndexXPath)
+
+                """post发布时间提取"""
+                try:
+                    postTime = postEle.find_element_by_xpath(
+                        ".//*[@class='oajrlxb2 g5ia77u1 qu0x051f esr5mh6w e9989ue4 r7d6kgcz rq0escxv nhd2j8a9 nc684nl6 p7hjln8o kvgmc6g5 cxmmr5t8 oygrvhab hcukyx3x jb3vyjys rz4wbd8a qt6c0cv9 a8nywdso i1ao9s8h esuyzwwr f1sip0of lzcic4wl gmql0nx0 gpro0wi8 b1v8xokw']") \
+                        .get_attribute("aria-label")
+                    print("post{}[time]:{}-------".format(indexPost, postTime))
+                    postData['time'] = postTime
+                except NoSuchElementException:
+                    pass
+
+                """post内容提取"""
                 # blockquote 表示翻译后的
                 # div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a'] 表示直接的文字
-                items = post.find_elements_by_xpath(
+                itemEles = postEle.find_elements_by_xpath(
                     ".//*[self::blockquote or self::div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']]")
 
                 itemsResult = []
-                for (indexItem, item) in enumerate(items):
+                for (indexItem, item) in enumerate(itemEles):
                     if item.text != "":
                         itemText = item.text.replace('\n', '').replace(' · See original  · Rate this translation',
                                                                        '').strip()
                         itemsResult.append(itemText)
-                print("post{}:{}-------".format(indexPost, itemsResult))
+                print("post{}[items]:{}-------".format(indexPost, itemsResult))
+                postData['items'] = itemsResult
 
                 # 如果有文本内容且存储结果中该post序号内还没有东西
-                if itemsResult != [] and indexPost not in postsResult:
-                    postsResult[indexPost] = itemsResult
+                if 'time' in postData and postData['items'] != [] and indexPost not in postsResult:
+                    postsResult[indexPost] = postData
                     indexValid = indexPost
                     indexValidUpdate = True
                     print('保存第{}个post，内容为：{}'.format(indexPost, postsResult[indexPost]))
@@ -199,7 +213,7 @@ class Facebook:
             if not indexValidUpdate:
                 indexValid += 1
             try:
-                util.scrollToEle(self.driver, posts[indexValid])
+                util.scrollToEle(self.driver, postEles[indexValid])
             except IndexError or StaleElementReferenceException:
                 if not util.scrollToPosition(self.driver, 1):
                     break
@@ -233,8 +247,8 @@ class Facebook:
             postsResult = self.crawl(self.facebookids[i])
             result = []
             for key, value in postsResult.items():
-                item = {'facebookid': self.facebookids[i], 'index': key, 'main': value[0],
-                        'reference': '||'.join(value[1:])}
+                item = {'facebookid': self.facebookids[i], 'index': key, 'time':value['time'],
+                        'main': value['items'][0], 'reference': '||'.join(value['items'][1:])}
                 result.append(item)
             postsResultDF = pd.DataFrame(result)
             postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i]), index=False, header=True)
