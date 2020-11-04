@@ -133,7 +133,8 @@ class Facebook:
 
             # 等待post列表加载完毕
             # posts列表的XPath路径
-            postsXPath = ".//div[@class='rq0escxv l9j0dhe7 du4w35lb d2edcug0 hpfvmrgz gile2uim buofh1pr g5gj957u aov4n071 oi9244e8 bi6gxh9e h676nmdw aghb5jc5']/div"
+            postsXPath = "(.//div[@class='rq0escxv l9j0dhe7 du4w35lb d2edcug0 hpfvmrgz gile2uim buofh1pr g5gj957u aov4n071 oi9244e8 bi6gxh9e h676nmdw aghb5jc5']/div " \
+                         "| .//div[@role='feed'][2]/div[@class='du4w35lb k4urcfbm l9j0dhe7 sjgh65i0'])"
             try:
                 WebDriverWait(self.driver, 2, 0.05).until(
                     EC.presence_of_element_located((By.XPATH, postsXPath))
@@ -190,7 +191,7 @@ class Facebook:
                 # blockquote 表示翻译后的
                 # div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a'] 表示直接的文字
                 itemEles = postEle.find_elements_by_xpath(
-                    ".//*[self::blockquote or self::div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']]")
+                    ".//blockquote | .//div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']")
 
                 itemsResult = []
                 for (indexItem, item) in enumerate(itemEles):
