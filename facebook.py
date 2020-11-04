@@ -214,7 +214,7 @@ class Facebook:
             if not indexValidUpdate:
                 indexValid += 1
             try:
-                util.scrollToEle(self.driver, postEles[indexValid])
+                self.driver.execute_script("arguments[0].scrollIntoView();", postEles[indexValid])
             except IndexError or StaleElementReferenceException:
                 if not util.scrollToPosition(self.driver, 1):
                     break
