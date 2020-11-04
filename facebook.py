@@ -245,14 +245,21 @@ class Facebook:
 
         # 开始爬取
         for i in range(self.startID, self.endID):
+            print("开始爬取index：{},id：{}".format(i, self.facebookids[i]))
             postsResult = self.crawl(self.facebookids[i])
+            print("完成爬取index：{},id：{}，尝试保存...".format(i, self.facebookids[i]))
             result = []
             for key, value in postsResult.items():
                 item = {'facebookid': self.facebookids[i], 'index': key, 'time':value['time'],
                         'main': value['items'][0], 'reference': '||'.join(value['items'][1:])}
                 result.append(item)
             postsResultDF = pd.DataFrame(result)
-            postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i]), index=False, header=True)
+            try:
+                postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i]), index=False, header=True)
+            except FileNotFoundError:
+                print("文件路径错误：./data/{}.csv；跳过。".format(self.facebookids[i]))
+                pass
+            print("保存完毕index：{},id：{}".format(i, self.facebookids[i]))
 
         # input("回编辑器点击回车关闭浏览器：")
         print('爬取用户id序号从{}到{}，完成'.format(self.startID, self.endID))
