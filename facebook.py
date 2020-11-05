@@ -116,8 +116,8 @@ class Facebook:
         """
         timeStart = time.time()
 
-        print("进入要爬取的个人页面：" + self.loginURL + "/" + facebookid)
-        self.driver.get(self.loginURL + "/" + facebookid)
+        print("进入要爬取的个人页面：{}/{}".format(self.loginURL, facebookid))
+        self.driver.get(self.loginURL + "/" + str(facebookid))
 
         # 用字典保存数据
         postsResult = {}
