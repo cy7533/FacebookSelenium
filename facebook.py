@@ -250,14 +250,15 @@ class Facebook:
             print("完成爬取index：{},id：{}，尝试保存...".format(i, self.facebookids[i]))
             result = []
             for key, value in postsResult.items():
-                item = {'facebookid': self.facebookids[i], 'index': key, 'time':value['time'],
+                item = {'facebookid': self.facebookids[i], 'index': key, 'time': value['time'],
                         'main': value['items'][0], 'reference': '||'.join(value['items'][1:])}
                 result.append(item)
             postsResultDF = pd.DataFrame(result)
             try:
-                postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i]), index=False, header=True)
+                postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i].replace('.', '')), index=False,
+                                     header=True)
             except FileNotFoundError:
-                print("文件路径错误：./data/{}.csv；跳过。".format(self.facebookids[i]))
+                print("文件路径错误：./data/{}.csv；跳过。".format(self.facebookids[i].replace('.', '')))
                 pass
             print("保存完毕index：{},id：{}".format(i, self.facebookids[i]))
 
