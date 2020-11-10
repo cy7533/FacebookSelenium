@@ -1,4 +1,5 @@
 import argparse
+import re
 import sys
 import time
 
@@ -184,7 +185,7 @@ class Facebook:
                         .get_attribute("aria-label")
                     print("post{}[time]:{}-------".format(indexPost, postTime))
                     postData['time'] = postTime
-                except NoSuchElementException:
+                except:
                     pass
 
                 """post内容提取"""
@@ -254,11 +255,11 @@ class Facebook:
                         'main': value['items'][0], 'reference': '||'.join(value['items'][1:])}
                 result.append(item)
             postsResultDF = pd.DataFrame(result)
+            filename = re.sub(r'[<>/\\|:*?.]', '', str(self.facebookids[i]));
             try:
-                postsResultDF.to_csv("./data/{}.csv".format(self.facebookids[i].replace('.', '')), index=False,
-                                     header=True)
+                postsResultDF.to_csv("./data/{}.csv".format(filename), index=False, header=True)
             except FileNotFoundError:
-                print("文件路径错误：./data/{}.csv；跳过。".format(self.facebookids[i].replace('.', '')))
+                print("文件路径错误：./data/{}.csv；跳过。".format(filename))
                 pass
             print("保存完毕index：{},id：{}".format(i, self.facebookids[i]))
 
