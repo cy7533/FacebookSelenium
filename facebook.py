@@ -191,8 +191,15 @@ class Facebook:
                 """post内容提取"""
                 # blockquote 表示翻译后的
                 # div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a'] 表示直接的文字
-                itemEles = postEle.find_elements_by_xpath(
-                    ".//blockquote | .//div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']")
+                postsItemXpath = ".//blockquote | .//div[@class='ecm0bbzt hv4rvrfc ihqw7lf3 dati1w0a']";
+                try:
+                    WebDriverWait(self.driver, 2, 0.05).until(
+                        EC.presence_of_element_located((By.XPATH, postsItemXpath))
+                    )
+                    itemEles = postEle.find_elements_by_xpath(postsItemXpath)
+                except TimeoutException:
+                    print('错误！在网页中未找到{}的post内容'.format(facebookid))
+                    itemEles = []
 
                 itemsResult = []
                 for (indexItem, item) in enumerate(itemEles):
