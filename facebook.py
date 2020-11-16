@@ -197,7 +197,7 @@ class Facebook:
                         EC.presence_of_element_located((By.XPATH, postsItemXpath))
                     )
                     itemEles = postEle.find_elements_by_xpath(postsItemXpath)
-                except TimeoutException:
+                except:
                     print('错误！在网页中未找到{}的post内容'.format(facebookid))
                     itemEles = []
 
