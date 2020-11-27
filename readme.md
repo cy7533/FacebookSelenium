@@ -48,5 +48,5 @@ items = post.find_elements_by_xpath(".//blockquote")
 3. python运行
 
 ```bash
-facebook.py [-h] [--startID STARTID] [--endID ENDID] username password
+python facebook.py [-h] [--startID STARTID] [--endID ENDID] username password
 ```
